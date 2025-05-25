@@ -1,9 +1,10 @@
 import os
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
 
-def load_env():
+def load_env() -> None:
     """Load environment variables from .env file if it exists"""
     env_path = Path(".env")
     if env_path.exists():
@@ -19,15 +20,15 @@ def load_env():
 class Config:
     """Configuration from environment variables"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         load_env()
 
         # OpenAI
-        self.openai_api_key: str | None = os.getenv("OPENAI_API_KEY")
+        self.openai_api_key: Optional[str] = os.getenv("OPENAI_API_KEY")
         self.openai_model: str = os.getenv("OPENAI_MODEL", "gpt-4-turbo-preview")
 
         # Logfire
-        self.logfire_token: str | None = os.getenv("LOGFIRE_TOKEN")
+        self.logfire_token: Optional[str] = os.getenv("LOGFIRE_TOKEN")
 
         # Directories
         self.data_dir: str = os.getenv("DATA_DIR", "data")
