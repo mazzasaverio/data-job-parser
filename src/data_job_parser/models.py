@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import List, Optional, Union
 
 from pydantic import BaseModel, Field
 
@@ -26,18 +27,18 @@ class WorkMode(str, Enum):
 
 
 class Salary(BaseModel):
-    min_amount: float | None = Field(None, description="Minimum salary amount")
-    max_amount: float | None = Field(None, description="Maximum salary amount")
-    currency: str | None = Field(None, description="Currency code")
-    period: str | None = Field(
+    min_amount: Optional[float] = Field(None, description="Minimum salary amount")
+    max_amount: Optional[float] = Field(None, description="Maximum salary amount")
+    currency: Optional[str] = Field(None, description="Currency code")
+    period: Optional[str] = Field(
         None, description="Salary period (e.g., yearly, monthly)"
     )
 
 
 class Location(BaseModel):
-    city: str | None = None
-    state: str | None = None
-    country: str | None = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    country: Optional[str] = None
     is_remote: bool = False
 
 
@@ -47,39 +48,39 @@ class JobPosting(BaseModel):
     location: Location = Field(..., description="Job location details")
     description: str = Field(..., description="Full job description")
 
-    experience_level: ExperienceLevel | None = None
-    work_type: WorkType | None = None
-    work_mode: WorkMode | None = None
+    experience_level: Optional[ExperienceLevel] = None
+    work_type: Optional[WorkType] = None
+    work_mode: Optional[WorkMode] = None
 
-    salary: Salary | None = None
+    salary: Optional[Salary] = None
 
-    required_skills: list[str] = Field(
+    required_skills: List[str] = Field(
         default_factory=list, description="Required technical skills"
     )
-    preferred_skills: list[str] = Field(
+    preferred_skills: List[str] = Field(
         default_factory=list, description="Nice-to-have skills"
     )
 
-    responsibilities: list[str] = Field(
+    responsibilities: List[str] = Field(
         default_factory=list, description="Key responsibilities"
     )
-    requirements: list[str] = Field(
+    requirements: List[str] = Field(
         default_factory=list, description="Job requirements"
     )
-    benefits: list[str] = Field(default_factory=list, description="Benefits and perks")
+    benefits: List[str] = Field(default_factory=list, description="Benefits and perks")
 
-    years_of_experience: int | None = Field(
+    years_of_experience: Optional[int] = Field(
         None, description="Minimum years of experience required"
     )
-    education_requirements: str | None = Field(
+    education_requirements: Optional[str] = Field(
         None, description="Education requirements"
     )
 
-    department: str | None = None
-    team_size: str | None = None
+    department: Optional[str] = None
+    team_size: Optional[str] = None
 
-    application_deadline: str | None = None
-    posted_date: str | None = None
+    application_deadline: Optional[str] = None
+    posted_date: Optional[str] = None
 
-    contact_email: str | None = None
-    application_url: str | None = None
+    contact_email: Optional[str] = None
+    application_url: Optional[str] = None
