@@ -1,8 +1,8 @@
-# Job Posting Parser
+# Data Job Parser
 
-[![PyPI Downloads](https://static.pepy.tech/badge/job-posting-parser)](https://pepy.tech/projects/job-posting-parser)
+[![PyPI Downloads](https://static.pepy.tech/badge/data-job-parser)](https://pepy.tech/projects/data-job-parser)
 [![Python Version](https://img.shields.io/badge/python-3.12%2B-blue)](https://www.python.org/downloads/)
-[![PyPI Version](https://img.shields.io/pypi/v/job-posting-parser)](https://pypi.org/project/job-posting-parser/)
+[![PyPI Version](https://img.shields.io/pypi/v/data-job-parser)](https://pypi.org/project/data-job-parser/)
 
 Extract structured data from job postings using OpenAI's structured output capabilities
 
@@ -20,7 +20,7 @@ Extract structured data from job postings using OpenAI's structured output capab
 ## Installation
 
 ```bash
-pip install job-posting-parser
+pip install data-job-parser
 ```
 
 After installation, you need to install Playwright browsers:
@@ -32,7 +32,7 @@ playwright install chromium
 ## Quick Start
 
 ```python
-from job_posting_parser import JobPostingParser
+from data_job_parser import JobPostingParser
 
 # Initialize parser with your OpenAI API key
 parser = JobPostingParser(api_key="your-openai-api-key")
@@ -60,7 +60,7 @@ print(f"JSON saved to: {json_path}")
 ### Batch Processing
 
 ```python
-from job_posting_parser import JobPostingParser
+from data_job_parser import JobPostingParser
 
 parser = JobPostingParser(api_key="your-api-key")
 
@@ -160,8 +160,8 @@ The package uses Logfire for structured logging. Logs include:
 
 ```bash
 # Clone the repository
-git clone https://github.com/mazzasaverio/job-posting-parser.git
-cd job-posting-parser
+git clone https://github.com/mazzasaverio/data-job-parser.git
+cd data-job-parser
 
 # Install with dev dependencies
 uv sync
@@ -208,7 +208,7 @@ To publish a new version of the package, follow these steps:
    ```
 
 2. **Update Version Numbers**
-   - Update version in `src/job_posting_parser/__init__.py`:
+   - Update version in `src/data_job_parser/__init__.py`:
      ```python
      __version__ = "X.Y.Z"  # Replace with new version
      ```
@@ -263,7 +263,7 @@ uv add package-name --upgrade
 
 ## Versioning
 
-This project follows [Semantic Versioning](https://semver.org/). For the versions available, see the [tags on this repository](https://github.com/mazzasaverio/job-posting-parser/tags).
+This project follows [Semantic Versioning](https://semver.org/). For the versions available, see the [tags on this repository](https://github.com/mazzasaverio/data-job-parser/tags).
 
 ## Contributing
 
