@@ -1,21 +1,23 @@
 # Data Job Parser
 
 [![PyPI Downloads](https://static.pepy.tech/badge/data-job-parser)](https://pepy.tech/projects/data-job-parser)
-[![Python Version](https://img.shields.io/badge/python-3.12%2B-blue)](https://www.python.org/downloads/)
+[![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/downloads/)
 [![PyPI Version](https://img.shields.io/pypi/v/data-job-parser)](https://pypi.org/project/data-job-parser/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Tests](https://github.com/mazzasaverio/data-job-parser/workflows/CI/badge.svg)](https://github.com/mazzasaverio/data-job-parser/actions)
 
-Extract structured data from job postings using OpenAI's structured output capabilities
+Extract structured data from job postings using OpenAI's structured output capabilities.
 
 ## Features
 
-- 🎯 Extract structured information from any job posting URL
-- 🧠 Powered by OpenAI's GPT models with structured output
-- 📊 Comprehensive data model covering all job posting aspects
-- 🌐 Advanced web scraping with Playwright (handles JavaScript-heavy sites)
-- 💾 Save job postings as markdown and JSON files with SHA-1 hash filenames
-- 🔄 Automatic retries with exponential backoff
-- 📝 Detailed logging with Logfire
-- 🐍 Full type hints and Python 3.12+ support
+- 🎯 **Smart Extraction**: Extract structured information from any job posting URL
+- 🧠 **AI-Powered**: Uses OpenAI's GPT models with structured output for accurate parsing
+- 📊 **Comprehensive Data**: Covers all job posting aspects including salary, skills, requirements
+- 🌐 **Advanced Scraping**: Playwright-based scraping handles JavaScript-heavy sites
+- 💾 **File Storage**: Save as markdown and JSON with SHA-1 hash filenames for deduplication
+- 🔄 **Reliability**: Automatic retries with exponential backoff for robust operation
+- 📝 **Observability**: Detailed logging with Logfire integration
+- 🐍 **Modern Python**: Full type hints and Python 3.8+ support
 
 ## Installation
 
@@ -23,7 +25,7 @@ Extract structured data from job postings using OpenAI's structured output capab
 pip install data-job-parser
 ```
 
-After installation, you need to install Playwright browsers:
+After installation, install Playwright browsers:
 
 ```bash
 playwright install chromium
@@ -31,30 +33,37 @@ playwright install chromium
 
 ## Quick Start
 
+### Basic Usage
+
 ```python
 from data_job_parser import JobPostingParser
 
-# Initialize parser with your OpenAI API key
+# Initialize with OpenAI API key
 parser = JobPostingParser(api_key="your-openai-api-key")
 
 # Parse a job posting
-job, markdown_file, json_file = parser.parse("https://example.com/job-posting")
+job_data = parser.parse("https://example.com/job-posting")
 
 # Access structured data
-print(f"Title: {job.title}")
-print(f"Company: {job.company}")
-print(f"Location: {job.location.city}, {job.location.country}")
-print(f"Salary: {job.salary.min_amount}-{job.salary.max_amount} {job.salary.currency}")
-print(f"Required Skills: {', '.join(job.required_skills)}")
+print(f"Title: {job_data.title}")
+print(f"Company: {job_data.company}")
+print(f"Location: {job_data.location.city}, {job_data.location.country}")
+print(f"Salary: {job_data.salary.min_amount}-{job_data.salary.max_amount} {job_data.salary.currency}")
+print(f"Skills: {', '.join(job_data.required_skills)}")
+```
 
+### Save Files
+
+```python
 # Parse and save both markdown and JSON
-job, markdown_path, json_path = parser.parse(
+job_data, markdown_path, json_path = parser.parse(
     "https://example.com/job-posting",
     save_markdown=True,
     save_json=True
 )
-print(f"Markdown saved to: {markdown_path}")
-print(f"JSON saved to: {json_path}")
+
+print(f"Markdown: {markdown_path}")
+print(f"JSON: {json_path}")
 ```
 
 ### Batch Processing
@@ -63,215 +72,235 @@ print(f"JSON saved to: {json_path}")
 from data_job_parser import JobPostingParser
 
 parser = JobPostingParser(api_key="your-api-key")
-
-urls = ["url1", "url2", "url3"]
+urls = ["https://job1.com", "https://job2.com", "https://job3.com"]
 
 for url in urls:
     try:
-        job, markdown_path, json_path = parser.parse(url, save_markdown=True, save_json=True)
-        print(f"Parsed: {job.title} at {job.company}")
-        print(f"Files saved: {markdown_path}, {json_path}")
+        job_data, md_path, json_path = parser.parse(
+            url, 
+            save_markdown=True, 
+            save_json=True
+        )
+        print(f"✅ {job_data.title} at {job_data.company}")
     except Exception as e:
-        print(f"Failed to parse {url}: {e}")
+        print(f"❌ Failed to parse {url}: {e}")
 ```
 
 ## Configuration
 
 ### Environment Variables
 
-Create a `.env` file in your project root (see `.env.example` for reference):
+Create a `.env` file in your project root:
 
 ```bash
 # Required
 OPENAI_API_KEY=your-openai-api-key
 
-# Optional
+# Optional - Logging
 LOGFIRE_TOKEN=your-logfire-token
+
+# Optional - Model Configuration
 OPENAI_MODEL=gpt-4-turbo-preview
+
+# Optional - Playwright Settings
 PLAYWRIGHT_HEADLESS=true
 PLAYWRIGHT_TIMEOUT=60000
 ```
 
-### API Key
+### API Key Setup
 
-You can provide your OpenAI API key in two ways:
+**Option 1: Parameter**
+```python
+parser = JobPostingParser(api_key="your-api-key")
+```
 
-1. **As a parameter:**
-   ```python
-   parser = JobPostingParser(api_key="your-api-key")
-   ```
-
-2. **As an environment variable:**
-   ```bash
-   export OPENAI_API_KEY="your-api-key"
-   ```
+**Option 2: Environment Variable**
+```bash
+export OPENAI_API_KEY="your-api-key"
+```
+```python
+parser = JobPostingParser()  # Auto-loads from env
+```
 
 ### Model Selection
 
-By default, the parser uses `gpt-4-turbo-preview`. You can specify a different model:
-
 ```python
-parser = JobPostingParser(api_key="your-api-key", model="gpt-4")
+# Use different OpenAI model
+parser = JobPostingParser(
+    api_key="your-api-key", 
+    model="gpt-4o"  # or gpt-3.5-turbo, etc.
+)
 ```
 
 ### File Storage
 
-By default, files are saved in a `data` directory with the following structure:
+Files are saved with SHA-1 hash filenames to prevent duplicates:
 
 ```
 data/
 ├── markdown/
-│   └── <sha1-hash>.md
+│   └── a1b2c3d4e5f6789.md
 └── json/
-    └── <sha1-hash>.json
-```
-
-Example:
-```python
-# URL: https://example.com/job-123
-# Saved as: 
-# - data/markdown/a1b2c3d4e5f6.md
-# - data/json/a1b2c3d4e5f6.json
+    └── a1b2c3d4e5f6789.json
 ```
 
 ## Data Model
 
-The parser extracts the following information:
+The parser extracts comprehensive job information:
 
-- **Basic Information**: title, company, location, description
-- **Job Details**: experience level, work type, work mode
-- **Compensation**: salary range with currency
-- **Skills**: required and preferred skills
-- **Requirements**: responsibilities, requirements, education
-- **Benefits**: benefits and perks
-- **Additional Info**: team size, department, application details
+**Core Information**
+- Title, company, location, description
+- Work type (full-time, part-time, contract)
+- Work mode (remote, hybrid, on-site)
+- Experience level required
 
-## Logging
+**Compensation & Benefits**
+- Salary range with currency
+- Benefits and perks
+- Stock options, bonuses
 
-The package uses Logfire for structured logging. Logs include:
-- URL fetching status
-- Content extraction progress
-- OpenAI API calls
-- Errors and warnings
+**Skills & Requirements**
+- Required technical skills
+- Preferred/nice-to-have skills
+- Education requirements
+- Years of experience needed
+
+**Additional Details**
+- Team size and department
+- Application process
+- Company culture information
+
+## Error Handling
+
+The parser includes robust error handling:
+
+```python
+from data_job_parser import JobPostingParser
+from data_job_parser.exceptions import ParsingError, ScrapingError
+
+parser = JobPostingParser(api_key="your-api-key")
+
+try:
+    job_data = parser.parse("https://example.com/job")
+except ScrapingError as e:
+    print(f"Failed to scrape URL: {e}")
+except ParsingError as e:
+    print(f"Failed to parse content: {e}")
+except Exception as e:
+    print(f"Unexpected error: {e}")
+```
 
 ## Development
 
-### Setup
+### Setup Development Environment
 
 ```bash
-# Clone the repository
+# Clone repository
 git clone https://github.com/mazzasaverio/data-job-parser.git
 cd data-job-parser
 
-# Install with dev dependencies
-uv sync
+# Install with uv (recommended)
+uv sync --dev
+
+# Or with pip
+pip install -e ".[dev]"
 ```
 
-### Testing
+### Run Tests
 
 ```bash
-# Run tests
+# Run all tests
 uv run pytest
 
-# Run with coverage
-uv run pytest --cov
+# With coverage report
+uv run pytest --cov=src/data_job_parser --cov-report=html
+
+# Run specific test file
+uv run pytest tests/test_parser.py -v
 ```
 
 ### Code Quality
 
 ```bash
 # Format code
-uv run black src tests
-uv run isort src tests
+uv run ruff format .
 
-# Lint
-uv run ruff check src tests
+# Lint code
+uv run ruff check .
 
-# Type check
-uv run mypy src
+# Type checking
+uv run mypy src/
 ```
 
-### Publishing a New Version
+### Release Process
 
-To publish a new version of the package, follow these steps:
+1. **Update version** in both files:
+   - `src/data_job_parser/__init__.py`
+   - `pyproject.toml`
 
-1. **Run Tests and Quality Checks**
+2. **Run quality checks**:
    ```bash
-   # Run all tests
    uv run pytest
-   
-   # Run code quality checks
-   uv run black src tests
-   uv run isort src tests
-   uv run ruff check src tests
-   uv run mypy src
+   uv run ruff check .
+   uv run mypy src/
    ```
 
-2. **Update Version Numbers**
-   - Update version in `src/data_job_parser/__init__.py`:
-     ```python
-     __version__ = "X.Y.Z"  # Replace with new version
-     ```
-   - Update version in `pyproject.toml`:
-     ```toml
-     [project]
-     version = "X.Y.Z"  # Replace with new version
-     ```
-
-3. **Commit Changes**
+3. **Commit and tag**:
    ```bash
    git add .
-   git commit -m "chore: update version to X.Y.Z"
-   ```
-
-4. **Create and Push Tag**
-   ```bash
+   git commit -m "chore: bump version to X.Y.Z"
+   git push origin main
+   
    git tag vX.Y.Z
    git push origin vX.Y.Z
    ```
 
-5. **Push Changes to Master**
-   ```bash
-   git push origin master
-   ```
-
-The GitHub workflow will automatically:
-- Run tests
-- Build the package
-- Publish to PyPI
-- Create a GitHub release
-
-### Adding Dependencies
-
-```bash
-# Add a new dependency
-uv add package-name
-
-# Add a dev dependency
-uv add --dev package-name
-```
-
-### Updating Dependencies
-
-```bash
-# Update all dependencies
-uv sync --upgrade
-
-# Update specific package
-uv add package-name --upgrade
-```
-
-## Versioning
-
-This project follows [Semantic Versioning](https://semver.org/). For the versions available, see the [tags on this repository](https://github.com/mazzasaverio/data-job-parser/tags).
+4. **Automated deployment**: GitHub Actions will automatically:
+   - Run tests
+   - Build package  
+   - Publish to PyPI
+   - Create GitHub release
 
 ## Contributing
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+We welcome contributions! Please follow these steps:
+
+1. **Fork** the repository
+2. **Create** feature branch: `git checkout -b feature/amazing-feature`
+3. **Make** your changes with tests
+4. **Run** quality checks: `uv run pytest && uv run ruff check .`
+5. **Commit** changes: `git commit -m 'feat: add amazing feature'`
+6. **Push** branch: `git push origin feature/amazing-feature`
+7. **Open** a Pull Request
+
+### Development Guidelines
+
+- Write tests for new features
+- Follow existing code style
+- Update documentation as needed
+- Use conventional commit messages
+
+## Requirements
+
+- **Python**: 3.8+
+- **OpenAI API Key**: Required for parsing
+- **Internet Connection**: For web scraping and API calls
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for version history and changes.
 
 ## License
-MIT License - see LICENSE file for details.
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- **OpenAI** for structured output capabilities
+- **Playwright** for robust web scraping
+- **Pydantic** for data validation
+- **Logfire** for observability
+
+---
+
+**Made with ❤️ by [Saverio Mazza](https://github.com/mazzasaverio)**
