@@ -130,3 +130,39 @@ class JobPostingParser:
                 )
 
             return job_posting, markdown_path, json_path
+
+    async def parse_async(
+        self,
+        url: str,
+        save_markdown: bool = False,
+        save_json: bool = False,
+        markdown_dir: Optional[str] = None,
+        json_dir: Optional[str] = None,
+    ) -> Tuple[JobPosting, Optional[str], Optional[str]]:
+        """
+        Asynchronous version of parse method for use in environments with running event loops
+        (like Jupyter notebooks).
+
+        Args:
+            url: The job posting URL
+            save_markdown: Whether to save the markdown content
+            save_json: Whether to save the extracted data as JSON
+            markdown_dir: Directory to save markdown files (default: "data/markdown")
+            json_dir: Directory to save JSON files (default: "data/json")
+
+        Returns:
+            Tuple of (JobPosting object, markdown filepath if saved, json filepath if saved)
+        """
+        with logfire.span("parse_job_posting_async", url=url):
+            content, markdown_path = await self.scraper._fetch_content_async(
+                url, save_markdown, markdown_dir or config.markdown_output_dir
+            )
+            job_posting = self._extract_structured_data(content)
+
+            json_path = None
+            if save_json:
+                json_path = self._save_json(
+                    url, job_posting, json_dir or config.json_output_dir
+                )
+
+            return job_posting, markdown_path, json_path

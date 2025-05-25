@@ -56,8 +56,8 @@ print(f"Skills: {', '.join(job_data.required_skills)}")
 
 ```python
 # Parse and save both markdown and JSON
-job_data, markdown_path, json_path = parser.parse(
-    "https://example.com/job-posting",
+job_data, markdown_path, json_path = await parser.parse_async(
+    "https://jobs.pradagroup.com/job/Milan-Data-Engineer/1199629101/",
     save_markdown=True,
     save_json=True
 )
