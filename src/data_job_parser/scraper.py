@@ -2,6 +2,7 @@ import asyncio
 import hashlib
 import os
 from pathlib import Path
+from typing import Optional, Tuple
 
 import html2text
 import logfire
@@ -11,7 +12,7 @@ from .config import config
 
 
 class JobPostingScraper:
-    def __init__(self, headless: bool = True, timeout: int = 60000):
+    def __init__(self, headless: bool = True, timeout: int = 60000) -> None:
         self.headless = headless
         self.timeout = timeout
         self.converter = html2text.HTML2Text()
@@ -27,8 +28,8 @@ class JobPostingScraper:
         return hashlib.sha1(url.encode()).hexdigest() + ".md"
 
     async def _fetch_content_async(
-        self, url: str, save_markdown: bool = False, output_dir: str | None = None
-    ) -> tuple[str, str | None]:
+        self, url: str, save_markdown: bool = False, output_dir: Optional[str] = None
+    ) -> Tuple[str, Optional[str]]:
         with logfire.span("fetch_job_posting", url=url):
             try:
                 async with async_playwright() as p:
@@ -66,7 +67,7 @@ class JobPostingScraper:
                 raise
 
     def _save_markdown(
-        self, url: str, content: str, output_dir: str | None = None
+        self, url: str, content: str, output_dir: Optional[str] = None
     ) -> str:
         output_dir = output_dir or config.markdown_output_dir
         Path(output_dir).mkdir(parents=True, exist_ok=True)
@@ -83,6 +84,6 @@ class JobPostingScraper:
         return filepath
 
     def fetch_content(
-        self, url: str, save_markdown: bool = False, output_dir: str | None = None
-    ) -> tuple[str, str | None]:
+        self, url: str, save_markdown: bool = False, output_dir: Optional[str] = None
+    ) -> Tuple[str, Optional[str]]:
         return asyncio.run(self._fetch_content_async(url, save_markdown, output_dir))
