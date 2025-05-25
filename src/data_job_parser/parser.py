@@ -1,6 +1,7 @@
 import hashlib
 import os
 from pathlib import Path
+from typing import Optional, Tuple
 
 import logfire
 from openai import OpenAI
@@ -13,10 +14,10 @@ from .scraper import JobPostingScraper
 class JobPostingParser:
     def __init__(
         self,
-        api_key: str | None = None,
-        model: str | None = None,
-        headless: bool | None = None,
-    ):
+        api_key: Optional[str] = None,
+        model: Optional[str] = None,
+        headless: Optional[bool] = None,
+    ) -> None:
         self.api_key = api_key or config.openai_api_key
         if not self.api_key:
             raise ValueError(
@@ -40,7 +41,7 @@ class JobPostingParser:
         return hashlib.sha1(url.encode()).hexdigest() + ".json"
 
     def _save_json(
-        self, url: str, job_posting: JobPosting, output_dir: str | None = None
+        self, url: str, job_posting: JobPosting, output_dir: Optional[str] = None
     ) -> str:
         output_dir = output_dir or config.json_output_dir
         Path(output_dir).mkdir(parents=True, exist_ok=True)
@@ -81,6 +82,9 @@ class JobPostingParser:
                 )
 
                 result = completion.choices[0].message.parsed
+                if result is None:
+                    raise ValueError("Failed to parse job posting data")
+
                 logfire.info(
                     "Successfully extracted job data",
                     title=result.title,
@@ -97,9 +101,9 @@ class JobPostingParser:
         url: str,
         save_markdown: bool = False,
         save_json: bool = False,
-        markdown_dir: str | None = None,
-        json_dir: str | None = None,
-    ) -> tuple[JobPosting, str | None, str | None]:
+        markdown_dir: Optional[str] = None,
+        json_dir: Optional[str] = None,
+    ) -> Tuple[JobPosting, Optional[str], Optional[str]]:
         """
         Parse job posting from URL.
 
