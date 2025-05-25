@@ -30,10 +30,10 @@ def main():
         )
 
         # Display results
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"Job Title: {job.title}")
         print(f"Company: {job.company}")
-        print(f"{'='*60}\n")
+        print(f"{'=' * 60}\n")
 
         # Show where files were saved
         if markdown_path:
