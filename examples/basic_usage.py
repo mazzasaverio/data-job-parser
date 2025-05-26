@@ -1,10 +1,10 @@
-import os
-import asyncio
 import argparse
-import logfire
-from pathlib import Path
+import asyncio
+import os
 
-from data_job_parser import JobPostingParser, config
+import logfire
+
+from data_job_parser import JobPostingParser
 
 
 def get_job_url() -> str:
