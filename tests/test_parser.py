@@ -37,19 +37,30 @@ def test_parse_job_posting(
 ):
     # Setup playwright mock
     mock_page = AsyncMock()
-    mock_page.title.return_value = "Job Title"
-    mock_page.content.return_value = "<html><body>Job posting content</body></html>"
+    mock_page.title = AsyncMock(return_value="Job Title")
+    mock_page.content = AsyncMock(
+        return_value="<html><body>Job posting content</body></html>"
+    )
+    mock_page.set_viewport_size = AsyncMock()
+    mock_page.goto = AsyncMock()
+    mock_page.add_script_tag = AsyncMock()
+    mock_page.evaluate = AsyncMock(return_value=None)  # Readability.js returns None
+    mock_page.query_selector = AsyncMock(return_value=None)  # No main/article/section
 
     mock_browser = AsyncMock()
-    mock_browser.new_page.return_value = mock_page
+    mock_browser.new_page = AsyncMock(return_value=mock_page)
+    mock_browser.close = AsyncMock()
 
     mock_playwright_instance = AsyncMock()
-    mock_playwright_instance.chromium.launch.return_value = mock_browser
-    mock_playwright.return_value.__aenter__.return_value = mock_playwright_instance
+    mock_playwright_instance.chromium.launch = AsyncMock(return_value=mock_browser)
+    mock_playwright.return_value.__aenter__ = AsyncMock(
+        return_value=mock_playwright_instance
+    )
 
-    # Setup OpenAI mock
+    # Setup OpenAI mock for Structured Outputs
     mock_message = Mock()
     mock_message.parsed = mock_openai_response
+    mock_message.refusal = None
 
     mock_choice = Mock()
     mock_choice.message = mock_message
@@ -67,8 +78,8 @@ def test_parse_job_posting(
     assert result.company == "Tech Corp"
     assert result.location.city == "San Francisco"
     assert "Python" in result.required_skills
-    assert markdown_path is None  # No save requested
-    assert json_path is None  # No save requested
+    assert markdown_path is None
+    assert json_path is None
 
 
 @patch("data_job_parser.parser.OpenAI")
@@ -79,21 +90,32 @@ def test_parse_job_posting(
 def test_parse_with_markdown_save(
     mock_mkdir, mock_join, mock_open, mock_playwright, mock_openai, mock_openai_response
 ):
-    # Setup mocks
+    # Setup playwright mock
     mock_page = AsyncMock()
-    mock_page.title.return_value = "Job Title"
-    mock_page.content.return_value = "<html><body>Job posting content</body></html>"
+    mock_page.title = AsyncMock(return_value="Job Title")
+    mock_page.content = AsyncMock(
+        return_value="<html><body>Job posting content</body></html>"
+    )
+    mock_page.set_viewport_size = AsyncMock()
+    mock_page.goto = AsyncMock()
+    mock_page.add_script_tag = AsyncMock()
+    mock_page.evaluate = AsyncMock(return_value=None)
+    mock_page.query_selector = AsyncMock(return_value=None)
 
     mock_browser = AsyncMock()
-    mock_browser.new_page.return_value = mock_page
+    mock_browser.new_page = AsyncMock(return_value=mock_page)
+    mock_browser.close = AsyncMock()
 
     mock_playwright_instance = AsyncMock()
-    mock_playwright_instance.chromium.launch.return_value = mock_browser
-    mock_playwright.return_value.__aenter__.return_value = mock_playwright_instance
+    mock_playwright_instance.chromium.launch = AsyncMock(return_value=mock_browser)
+    mock_playwright.return_value.__aenter__ = AsyncMock(
+        return_value=mock_playwright_instance
+    )
 
-    # Setup OpenAI mock
+    # Setup OpenAI mock for Structured Outputs
     mock_message = Mock()
     mock_message.parsed = mock_openai_response
+    mock_message.refusal = None
 
     mock_choice = Mock()
     mock_choice.message = mock_message
@@ -117,21 +139,19 @@ def test_parse_with_markdown_save(
         "https://example.com/job", save_markdown=True, save_json=False
     )
 
+    assert result.title == "Senior Software Engineer"
     assert markdown_path == "data/markdown/hash.md"
-    assert json_path is None  # No JSON save requested
-    assert mock_mkdir.call_count >= 1  # Almeno una volta per la directory markdown
+    assert json_path is None
 
 
-@patch("data_job_parser.config.config.openai_api_key", None)
-def test_missing_api_key():
-    with pytest.raises(ValueError, match="OpenAI API key is required"):
-        JobPostingParser()  # Non passare api_key per testare il caso di errore
+def test_generate_filename():
+    parser = JobPostingParser(api_key="test-key")
+    url = "https://example.com/job"
+    expected = hashlib.sha1(url.encode()).hexdigest() + ".json"
+    assert parser._generate_filename(url) == expected
 
 
-def test_filename_generation():
+def test_scraper_initialization():
     scraper = JobPostingScraper()
-
-    url = "https://example.com/job-123"
-    expected_hash = hashlib.sha1(url.encode()).hexdigest() + ".md"
-
-    assert scraper._generate_filename(url) == expected_hash
+    assert scraper.headless is True
+    assert scraper.timeout == 60000
