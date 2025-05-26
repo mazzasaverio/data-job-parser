@@ -26,7 +26,7 @@ class JobPostingParser:
             )
 
         self.client = OpenAI(api_key=self.api_key)
-        self.model = model or config.openai_model
+        self.model = model or config.openai_model or "gpt-4o-2024-08-06"
         self.scraper = JobPostingScraper(
             headless=headless if headless is not None else config.playwright_headless,
             timeout=config.playwright_timeout,
@@ -64,33 +64,32 @@ class JobPostingParser:
                         {
                             "role": "system",
                             "content": (
-                                "You are an expert at extracting structured information from job "
-                                "postings. Extract all relevant information and organize it "
-                                "according to the provided schema. Be thorough and accurate in "
-                                "your extraction. The content is in markdown format."
+                                "You are an expert at structured data extraction. "
+                                "Extract all relevant information from the job posting and fill in as many fields as possible. "
+                                "For fields you cannot determine, leave them as null or empty lists as appropriate. "
+                                "Pay special attention to extracting tech stack, salary information, experience level, and work mode details."
                             ),
                         },
-                        {
-                            "role": "user",
-                            "content": (
-                                "Extract structured information from this job posting:\n\n"
-                                f"{content}"
-                            ),
-                        },
+                        {"role": "user", "content": content},
                     ],
                     response_format=JobPosting,
                 )
 
-                result = completion.choices[0].message.parsed
-                if result is None:
+                if completion.choices[0].message.refusal:
+                    raise ValueError(
+                        f"Model refused to parse: {completion.choices[0].message.refusal}"
+                    )
+
+                job_posting = completion.choices[0].message.parsed
+                if job_posting is None:
                     raise ValueError("Failed to parse job posting data")
 
                 logfire.info(
                     "Successfully extracted job data",
-                    title=result.title,
-                    company=result.company,
+                    title=job_posting.title,
+                    company=job_posting.company,
                 )
-                return result
+                return job_posting
 
             except Exception as e:
                 logfire.error("Error extracting structured data", error=str(e))

@@ -25,7 +25,7 @@ class Config:
 
         # OpenAI
         self.openai_api_key: Optional[str] = os.getenv("OPENAI_API_KEY")
-        self.openai_model: str = os.getenv("OPENAI_MODEL", "gpt-4-turbo-preview")
+        self.openai_model: str = os.getenv("OPENAI_MODEL", "gpt-4o-2024-08-06")
 
         # Logfire
         self.logfire_token: Optional[str] = os.getenv("LOGFIRE_TOKEN")

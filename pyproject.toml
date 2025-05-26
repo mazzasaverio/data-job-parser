@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "data-job-parser"
-version = "0.1.1"
+version = "0.1.2"
 description = "Extract structured data from job postings using OpenAI"
 authors = [
     {name = "Saverio Mazza", email = "saverio3107@gmail.com"},

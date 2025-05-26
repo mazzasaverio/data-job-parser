@@ -1,11 +1,21 @@
 import os
-
+import asyncio
+import argparse
 import logfire
+from pathlib import Path
 
-from data_job_parser import JobPostingParser
+from data_job_parser import JobPostingParser, config
 
 
-def main():
+def get_job_url() -> str:
+    """Get job URL from command line input."""
+    parser = argparse.ArgumentParser(description="Parse a job posting URL")
+    parser.add_argument("url", help="URL of the job posting to parse")
+    args = parser.parse_args()
+    return args.url
+
+
+async def main():
     # Configure Logfire for detailed logging
     logfire.configure()
 
@@ -15,15 +25,15 @@ def main():
         print("Please set OPENAI_API_KEY environment var")
         return
 
-    # Example job posting URL
-    job_url = "https://www.helloprima.com/it/carriere/offerte-lavoro/senior-data-engineer-1211d8cc-cda2-4a65-9743-cab60f83a8b1"
+    # Get job URL from command line
+    job_url = get_job_url()
 
     # Initialize parser (headless=False to see browser in action)
     parser = JobPostingParser(api_key=api_key, headless=True)
 
     try:
         # Parse the job posting and save both markdown and JSON
-        job, markdown_path, json_path = parser.parse(
+        job, markdown_path, json_path = await parser.parse_async(
             job_url,
             save_markdown=True,
             save_json=True,
@@ -89,33 +99,35 @@ def main():
         logfire.error("Failed to parse job posting", error=str(e))
 
 
-def parse_multiple_jobs():
+async def parse_multiple_jobs():
     """Example of parsing multiple job postings"""
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         print("Please set OPENAI_API_KEY environment variable")
         return
 
-    job_urls = [
-        "https://example.com/job1",
-        "https://example.com/job2",
-        "https://example.com/job3",
-    ]
+    # Get job URLs from command line
+    parser = argparse.ArgumentParser(description="Parse multiple job posting URLs")
+    parser.add_argument("urls", nargs="+", help="List of job posting URLs to parse")
+    args = parser.parse_args()
+    job_urls = args.urls
 
     parser = JobPostingParser(api_key=api_key)
 
     for url in job_urls:
         try:
-            job, filepath = parser.parse(url, save_markdown=True)
+            job, markdown_path, json_path = await parser.parse_async(
+                url, save_markdown=True, save_json=True
+            )
             print(f"✅ Parsed: {job.title} at {job.company}")
-            print(f"   Saved to: {filepath}")
+            print(f"   Saved to: {markdown_path}")
         except Exception as e:
             print(f"❌ Failed to parse {url}: {e}")
 
 
 def demonstrate_filename_generation():
     """Show how URLs are converted to SHA-1 filenames"""
-    from job_posting_parser.scraper import JobPostingScraper
+    from data_job_parser.scraper import JobPostingScraper
 
     scraper = JobPostingScraper()
 
@@ -136,10 +148,10 @@ def demonstrate_filename_generation():
 
 if __name__ == "__main__":
     # Run the main example
-    main()
+    asyncio.run(main())
 
     # Demonstrate filename generation
     demonstrate_filename_generation()
 
     # Uncomment to parse multiple jobs
-    # parse_multiple_jobs()
+    # asyncio.run(parse_multiple_jobs())

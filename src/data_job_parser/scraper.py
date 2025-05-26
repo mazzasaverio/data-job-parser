@@ -44,8 +44,36 @@ class JobPostingScraper:
                     await asyncio.sleep(2)
 
                     title = await page.title()
-                    content = await page.content()
-                    markdown = self.converter.handle(content)
+
+                    # Try to use Readability.js to extract main content
+                    readability_js = """
+                    // Readability.js from https://github.com/mozilla/readability
+                    // (minified version or CDN link)
+                    """
+                    await page.add_script_tag(content=readability_js)
+                    main_content = await page.evaluate(
+                        """
+                        () => {
+                            if (window.Readability) {
+                                let article = new Readability(document).parse();
+                                return article ? article.content : null;
+                            }
+                            return null;
+                        }
+                    """
+                    )
+                    if main_content:
+                        markdown = self.converter.handle(main_content)
+                    else:
+                        # Fallback: try to get the largest <main>, <article>, or <section>
+                        element = await page.query_selector("main, article, section")
+                        if element:
+                            content = await element.inner_html()
+                            markdown = self.converter.handle(content)
+                        else:
+                            # Fallback: whole page
+                            content = await page.content()
+                            markdown = self.converter.handle(content)
 
                     await browser.close()
 

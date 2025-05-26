@@ -1,6 +1,6 @@
 """Extract structured data from job postings using OpenAI"""
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 from .config import config
 from .models import JobPosting
